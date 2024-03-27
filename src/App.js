@@ -1,25 +1,35 @@
-import logo from './logo.svg';
-import './App.css';
+import React from "react";
+import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from "react-router-dom";
+import SignIn from "./pages/SignIn";
+import Dashboard from "./pages/Dashboard"; // Your main application content
+import { auth } from "./firebase/firebase-config";
+import Register from "./pages/Register";
 
-function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
-}
+const App = () => {
+    const [user, setUser] = React.useState(null);
+
+    React.useEffect(() => {
+        const unsubscribe = auth.onAuthStateChanged((user) => {
+            setUser(user);
+        });
+        return unsubscribe;
+    }, []);
+
+    return (
+        <Router>
+            <Routes>
+                <Route path='/signin' element={<SignIn />} />
+                <Route element={<PrivateRoute user={user} />}>
+                    <Route element={<Dashboard />} path='/dashboard' />
+                </Route>
+                <Route path='/register' element={<Register />} />
+            </Routes>
+        </Router>
+    );
+};
+
+const PrivateRoute = ({ user, children }) => {
+    return user ? <Outlet /> : <Navigate to='/signin' replace />;
+};
 
 export default App;
