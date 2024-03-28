@@ -1,33 +1,25 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { auth, firestore } from "../firebase/firebase-config";
+import { collection, getDoc, getDocs, addDoc, updateDoc, deleteDoc, doc, query, where } from "firebase/firestore";
+import { auth, firestore } from "../../firebase/firebase-config";
 
-const Dashboard = ({verifiedUser}) => {
+const UserDashboard = ({ verifiedUser }) => {
     const navigate = useNavigate();
-    const [user, setUser] = useState({});
+    const [user, setUser] = useState(null);
     useEffect(() => {
-        console.log(verifiedUser);
-
         // Fetch user data from Firestore
         const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
-            // console.log(currentUser);
             if (currentUser) {
                 const collection_ref = collection(firestore, "users");
                 const q = query(collection_ref, where("uid", "==", currentUser.uid));
                 const doc_refs = await getDocs(q);
 
                 if (doc_refs.size === 1) {
-                    let verifiedUser = {};
-
                     doc_refs.forEach((item) => {
                         setUser({ ...item.data() });
-                        verifiedUser = { ...item.data() };
                     });
-                    return verifiedUser;
                 } else {
                     // add message displaying issue with credentials and to contact admin
-                    // uncomment this out later
                     // handleSignOut();
                 }
             } else {
@@ -35,6 +27,7 @@ const Dashboard = ({verifiedUser}) => {
                 navigate("/signin");
             }
         });
+        // console.log(user.permissions);
         return unsubscribe;
     }, [navigate]);
 
@@ -51,7 +44,7 @@ const Dashboard = ({verifiedUser}) => {
 
     return (
         <div>
-            <h2>Welcome to the Dashboard, {user && user.firstName}!</h2>
+            <h2>Welcome to the Admin User Dashboard, {user && user.firstName}!</h2>
             <p>User Info:</p>
             {user && (
                 <ul>
@@ -67,4 +60,4 @@ const Dashboard = ({verifiedUser}) => {
     );
 };
 
-export default Dashboard;
+export default UserDashboard;
